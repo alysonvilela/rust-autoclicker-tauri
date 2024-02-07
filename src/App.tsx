@@ -17,7 +17,7 @@ interface Position {
 }
 
 const App = () => {
-  const [appName, setApp] = useState<null | string>(null);
+  const [_appName, setApp] = useState<null | string>(null);
   const [position, setPosition] = useState<Position>({
     start: {
       loading: false,
@@ -28,8 +28,8 @@ const App = () => {
       pos: [null, null],
     },
   });
-  
-  const validPosition = !!position.start.pos[0] && !!position.end.pos[0]
+
+  const validPosition = !!position.start.pos[0] && !!position.end.pos[0];
 
   const onRecordStart = async () => {
     await invoke("get_next_click", {
@@ -57,12 +57,12 @@ const App = () => {
     }));
   };
 
-  const onInitAfk = async() => {
-    invoke('start_afk', {
+  const onInitAfk = async () => {
+    emit("run-move-mouse", {
       startPos: position.start.pos,
       endPos: position.end.pos,
-    })
-  }
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -76,21 +76,21 @@ const App = () => {
         }))
       );
     })();
-  }, []);
+  }, [position]);
 
   useEffect(() => {
-      (async () => {
-        await listen("end_position_at", (ev) =>
-          setPosition((prev) => ({
-            ...prev,
-            end: {
-              loading: false,
-              pos: ev.payload as [number, number],
-            },
-          }))
-        );
-      })();
-  }, []);
+    (async () => {
+      await listen("end_position_at", (ev) =>
+        setPosition((prev) => ({
+          ...prev,
+          end: {
+            loading: false,
+            pos: ev.payload as [number, number],
+          },
+        }))
+      );
+    })();
+  }, [position]);
 
   return (
     <div className="container">
@@ -126,7 +126,14 @@ const App = () => {
         </div>
       </div>
       {/* <pre>{JSON.stringify(position, null, 2)}</pre> */}
-      <button disabled={!validPosition} className="primary" type="button" onClick={onInitAfk}>Start</button>
+      <button
+        // disabled={!validPosition}
+        className="primary"
+        type="button"
+        onClick={onInitAfk}
+      >
+        Start
+      </button>
     </div>
   );
 };

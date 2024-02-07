@@ -16,7 +16,6 @@
 
 .container {
   margin: 0;
-  padding-top: 10vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -39,6 +38,7 @@
   flex-direction: column;
   justify-content: center;
   margin-bottom: 16px;
+  gap: 8px;
 }
 
 .inputWrapper {
@@ -48,6 +48,11 @@
   grid-template-columns: repeat(4,minmax(0,1fr));
   align-items: center;
   text-align: right;
+}
+
+.inputWrapper label {
+  font-size: 10px;
+  text-wrap: nowrap;
 }
 
 .inputWrapper > :nth-child(2) {

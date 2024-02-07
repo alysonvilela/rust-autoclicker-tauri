@@ -361,6 +361,7 @@ name = "auto-clicker"
 version = "0.0.0"
 dependencies = [
  "enigo",
+ "mouce",
  "rdev",
  "serde",
  "serde_json",
@@ -2418,6 +2419,15 @@ dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "mouce"
+version = "0.2.43"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a33d9a0d590ee3a1e11ee24e8d800ec22a613558d20d7a73c16ee73b4ae5b90"
+dependencies = [
+ "glob",
 ]
 
 [[package]]
