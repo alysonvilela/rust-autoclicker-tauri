@@ -10,6 +10,11 @@
     "version": "0.0.0"
   },
   "tauri": {
+    "systemTray": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
+      "menuOnLeftClick": false
+    },
     "allowlist": {
       "all": true,
       "shell": {
@@ -17,15 +22,21 @@
         "open": true
       }
     },
+    "macOSPrivateApi": true,
     "windows": [
       {
         "fullscreen": false,
         "resizable": false,
-        "title": "auto-clicker",
-        "width": 350,
-        "height": 320,
+        "title": "AutoClicker",
+        "width": 300,
+        "height": 130,
+        "visible": false,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay",
         "minimizable": false,
         "closable": false,
+        "decorations": false,
+        "focus": false,
         "transparent": true,
         "alwaysOnTop": true
       }

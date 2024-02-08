@@ -2,17 +2,20 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use enigo::*;
 use rdev::*;
-use tauri::*;
 use serde::Deserialize;
+use tauri::*;
+use tauri_plugin_positioner::*;
+use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
 
+use mouce::Mouse;
 use std::thread;
 use std::time::Duration;
-use mouce::Mouse;
 
+#[allow(non_snake_case)]
 #[derive(Deserialize, Debug)]
 struct Payload {
     startPos: (i32, i32),
-    endPos: (i32, i32)
+    endPos: (i32, i32),
 }
 
 fn _move_mouse(start_pos: (i32, i32), end_pos: (i32, i32)) {
@@ -27,14 +30,6 @@ fn _move_mouse(start_pos: (i32, i32), end_pos: (i32, i32)) {
         enigo_instance.mouse_click(enigo::MouseButton::Left);
         std::thread::sleep(five_secs);
     }
-}
-
-#[tauri::command]
-fn start_afk(start_pos: (i32, i32), end_pos: (i32, i32), app_handle: tauri::AppHandle) -> bool {
-    let _ = app_handle.emit_all("run", {});
-    let win = app_handle.get_window("main").unwrap();
-    let _ = win.emit_all("run-move-mouse", [(123, 123), (9348, 293)]);
-    return true
 }
 
 #[tauri::command]
@@ -95,10 +90,15 @@ fn callback(
 }
 
 fn main() {
+    let quit = tauri::CustomMenuItem::new("quit".to_string(), "Quit").accelerator("Cmd+Q");
+    let system_tray = tauri::SystemTrayMenu::new().add_item(quit);
+
     tauri::Builder::default()
+        .plugin(tauri_plugin_positioner::init())
         .setup(|app| {
-            let win = app.get_window("main").unwrap();
-            win.listen_global("run-move-mouse", |event| {
+            let window = app.get_window("main").unwrap();
+
+            window.listen_global("run-move-mouse", |event| {
                 let payload = event.payload().unwrap();
                 println!("position on win: {:?}", payload);
             });
@@ -116,44 +116,95 @@ fn main() {
                 // for _ in 0..10 {
                 loop {
                     // Move to start_pos
-                    let current_position = mouse_manager.get_position().expect("error on find current position");
+                    let current_position = mouse_manager
+                        .get_position()
+                        .expect("error on find current position");
                     let steps_x_start = (start_pos.0 - current_position.0) as f64;
                     let steps_y_start = (start_pos.1 - current_position.1) as f64;
                     let total_steps_start = steps_x_start.max(steps_y_start) as usize;
-            
+
                     for step in 1..=total_steps_start {
-                        let new_x = current_position.0 + ((steps_x_start / total_steps_start as f64) * step as f64) as i32;
-                        let new_y = current_position.1 + ((steps_y_start / total_steps_start as f64) * step as f64) as i32;
-            
-                        mouse_manager.move_to(new_x as usize, new_y as usize);
+                        let new_x = current_position.0
+                            + ((steps_x_start / total_steps_start as f64) * step as f64) as i32;
+                        let new_y = current_position.1
+                            + ((steps_y_start / total_steps_start as f64) * step as f64) as i32;
+
+                        let _ = mouse_manager.move_to(new_x as usize, new_y as usize);
                         thread::sleep(Duration::from_millis(2));
                     }
-                    mouse_manager.click_button(&mouce::common::MouseButton::Left).expect("error on click");
+                    mouse_manager
+                        .click_button(&mouce::common::MouseButton::Left)
+                        .expect("error on click");
                     // Wait 10 seconds before moving to end_pos
                     thread::sleep(Duration::from_secs(2));
-            
+
                     // Move to end_pos
                     let steps_x_end = (end_pos.0 - current_position.0) as f64;
                     let steps_y_end = (end_pos.1 - current_position.1) as f64;
                     let total_steps_end = steps_x_end.max(steps_y_end) as usize;
-            
+
                     for step in 1..=total_steps_end {
-                        let new_x = current_position.0 + ((steps_x_end / total_steps_end as f64) * step as f64) as i32;
-                        let new_y = current_position.1 + ((steps_y_end / total_steps_end as f64) * step as f64) as i32;
-            
-                        mouse_manager.move_to(new_x as usize, new_y as usize);
+                        let new_x = current_position.0
+                            + ((steps_x_end / total_steps_end as f64) * step as f64) as i32;
+                        let new_y = current_position.1
+                            + ((steps_y_end / total_steps_end as f64) * step as f64) as i32;
+
+                        let _ = mouse_manager.move_to(new_x as usize, new_y as usize);
                         thread::sleep(Duration::from_millis(1));
                     }
-                    mouse_manager.click_button(&mouce::common::MouseButton::Left).expect("error on click");
-            
+                    mouse_manager
+                        .click_button(&mouce::common::MouseButton::Left)
+                        .expect("error on click");
+
                     // Wait 10 seconds before next iteration
                     thread::sleep(Duration::from_secs(2));
                 }
             });
 
+            #[cfg(target_os = "macos")]
+            apply_vibrancy(
+                &window,
+                NSVisualEffectMaterial::Menu,
+                Some(NSVisualEffectState::Active),
+                Some(6.0),
+            )
+            .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
+
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![get_next_click, start_afk])
+        .invoke_handler(tauri::generate_handler![get_next_click])
+        .system_tray(
+            tauri::SystemTray::new()
+                .with_menu(system_tray)
+                .with_title("Auto clicker"),
+        )
+        .on_system_tray_event(|app, event| {
+            tauri_plugin_positioner::on_tray_event(app, &event);
+
+            match event {
+                SystemTrayEvent::LeftClick {
+                    position: _,
+                    size: _,
+                    ..
+                } => {
+                    let window = app.get_window("main").unwrap();
+                    let _ = window.move_window(tauri_plugin_positioner::Position::TrayLeft);
+                    if window.is_visible().unwrap() {
+                        window.hide().unwrap();
+                    } else {
+                        window.show().unwrap();
+                        window.set_focus().unwrap();
+                    }
+                }
+                SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+                    "quit" => {
+                        std::process::exit(0);
+                    }
+                    _ => {}
+                },
+                _ => {}
+            }
+        })
         .run(tauri::generate_context!())
         .expect("failed to run app");
 }

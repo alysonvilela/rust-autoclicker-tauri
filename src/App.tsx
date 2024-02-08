@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 // When using the Tauri API npm package:
 import { invoke } from "@tauri-apps/api/tauri";
-
-import "./App.css";
+import { ChevronRight, PlayIcon } from "lucide-react";
 import { emit, listen } from "@tauri-apps/api/event";
 
-interface Position {
+interface IPosition {
   start: {
     loading: boolean;
     pos: [null | number, null | number];
@@ -16,9 +15,46 @@ interface Position {
   };
 }
 
+interface PositionProps {
+  axis: IPosition["start"]["pos"];
+}
+
+export const LoadingSpinner = () => {
+  return <i className="gg-spinner"></i>;
+};
+
+export const Position = ({ axis }: PositionProps) => {
+  return (
+    <div
+      style={{
+        fontSize: 12,
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+      }}
+    >
+      {axis[0]}, {axis[1]} <ChevronRight width={14} height={14} />
+    </div>
+  );
+};
+
+export const RecordLabel = () => {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        fontSize: 12,
+        gap: 4,
+      }}
+    >
+      Record <ChevronRight width={14} height={14} />
+    </div>
+  );
+};
+
 const App = () => {
-  const [_appName, setApp] = useState<null | string>(null);
-  const [position, setPosition] = useState<Position>({
+  const [position, setPosition] = useState<IPosition>({
     start: {
       loading: false,
       pos: [null, null],
@@ -94,45 +130,57 @@ const App = () => {
 
   return (
     <div className="container">
-      <h1>Auto clicker</h1>
-
-      {/* <p>Click on the Tauri, Vite, and React logos to learn more.</p> */}
-
+      <header>Auto clicker</header>
       <div className="form">
-        <div className="inputWrapper">
-          <label htmlFor="app"> App name</label>
-          <input
-            id="app"
-            onChange={(e) => setApp(e.currentTarget.value)}
-            placeholder="App name ex: 'Slack'"
-          />
-        </div>
-
-        <div className="inputWrapper">
-          <label htmlFor="p1">Start position</label>
-          <button onClick={onRecordStart}>
-            {position.start.loading
-              ? "..."
-              : `${!!position.start.pos[0] ? `(${position.start.pos[0]}, ${position.start.pos[1]} - Change)` : "Record"}`}
-          </button>
-        </div>
-        <div className="inputWrapper">
-          <label htmlFor="p2">End position</label>
-          <button onClick={onRecordEnd}>
-            {position.end.loading
-              ? "..."
-              : `${!!position.end.pos[0] ? `(${position.end.pos[0]}, ${position.end.pos[1]} - Change)` : "Record"}`}
-          </button>
-        </div>
+        <button className="row-button" onClick={onRecordStart}>
+          <label htmlFor="p1">Configure start position</label>
+          <span>
+            {position.start.loading ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                {!!position.start.pos[0] ? (
+                  <Position axis={position.start.pos} />
+                ) : (
+                  <RecordLabel />
+                )}
+              </>
+            )}
+          </span>
+        </button>
+        <button className="row-button" onClick={onRecordEnd}>
+          <label htmlFor="p2">Configure end position</label>
+          <span>
+            {position.end.loading ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                {!!position.end.pos[0] ? (
+                  <Position axis={position.end.pos} />
+                ) : (
+                  <RecordLabel />
+                )}
+              </>
+            )}
+          </span>
+        </button>
       </div>
-      {/* <pre>{JSON.stringify(position, null, 2)}</pre> */}
+      <div className="separator"></div>
       <button
-        // disabled={!validPosition}
+        disabled={!validPosition}
         className="primary"
         type="button"
         onClick={onInitAfk}
       >
-        Start
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          Run
+        </div>
       </button>
     </div>
   );
