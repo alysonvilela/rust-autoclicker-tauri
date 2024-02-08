@@ -1,7 +1,12 @@
-# Tauri + React + Typescript
+# MacOS Auto Clicker
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Allows you to autoclick
 
-## Recommended IDE Setup
+![Captura de Tela 2024-02-08 às 02 50 06](https://github.com/alysonvilela/rust-autoclicker-tauri/assets/22202745/0e5d18ef-edbb-4021-884a-f429ce20d92e)
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## Roadmap
+- [ ] Auto click given a start and end position
+- [ ] Define a interval between start/end
+- [ ] Stop the app by clicking in an option
+- [ ] Randomize next positions
+- [ ] Automatically stop given a selected time
