@@ -17,3 +17,15 @@ This app was built with Tauri ecossystem.
 - Rust Lang
 - Vite - reactjs module with typescript
 - Lucide React
+
+## How to test
+You need Node and Cargo installed on your machine.
+
+- Clone the project
+- Install app deps
+  - `pnpm install`
+- Run the project
+  - `pnpm tauri dev`
+ 
+## Build
+With all the dependencies installed (like how to test section), just run `pnpm tauri build`
